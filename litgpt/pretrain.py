@@ -16,6 +16,7 @@ from lightning.fabric.utilities.throughput import ThroughputMonitor, measure_flo
 from torch.utils.data import DataLoader
 from torchmetrics.aggregation import RunningMean
 from typing_extensions import Literal
+from transformers import AutoTokenizer
 
 from litgpt import Tokenizer
 from litgpt.args import EvalArgs, TrainArgs
@@ -124,7 +125,14 @@ def setup(
     devices = parse_devices(devices)
     out_dir = init_out_dir(out_dir)
     # in case the dataset requires the Tokenizer
-    tokenizer = Tokenizer(tokenizer_dir) if tokenizer_dir is not None else None
+
+    tokenizer = Tokenizer(tokenizer_dir) if tokenizer_dir is not None else AutoTokenizer.from_pretrained('bolbolzaban/gpt2-persian')
+    special_tokens = {"cls_token": "[CLS]", "additional_special_tokens":["[BOM]","[BOB]","[SEP]","<unk>"],"eos_token":"[EOS]"}
+    tokenizer.add_special_tokens(special_tokens)
+    tokenizer.cls_token = "[CLS]"
+    tokenizer.bob_token ="[BOB]"
+    tokenizer.bom_token = "[BOM]"
+    tokenizer.eos_token ="[EOS]"
 
     logger = choose_logger(
         logger_name, out_dir, name=f"pretrain-{config.name}", resume=bool(resume), log_interval=train.log_interval
