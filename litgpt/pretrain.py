@@ -127,7 +127,7 @@ def setup(
     # in case the dataset requires the Tokenizer
 
     tokenizer = Tokenizer(tokenizer_dir) if tokenizer_dir is not None else AutoTokenizer.from_pretrained('bolbolzaban/gpt2-persian')
-    special_tokens = {"cls_token": "[CLS]", "additional_special_tokens":["[BOM]","[BOB]","[SEP]","<unk>"],"eos_token":"[EOS]"}
+    special_tokens = {"bos_token": "[bos]", "cls_token": "[CLS]", "additional_special_tokens":["[BOM]","[BOB]","[SEP]","<unk>"],"eos_token":"[EOS]"}
     tokenizer.add_special_tokens(special_tokens)
     tokenizer.cls_token = "[CLS]"
     tokenizer.bob_token ="[BOB]"
@@ -415,7 +415,13 @@ def get_dataloaders(
     data.connect(tokenizer=tokenizer, batch_size=train.micro_batch_size, max_seq_length=block_size)
     with fabric.rank_zero_first():
         data.prepare_data()
-    data.setup()
+    data.setup() 
+    '''
+    text_files.py does not  have the explicit setup() method. This method is inherited from a parent class.
+    The TextFiles class inherits from a base DataModule class (probably from PyTorch Lightning) that defines this setup() method.
+    b). In PyTorch Lightning's LightningDataModule, which is likely the base class for TextFiles, the setup() method is often used to
+    set up the dataset splits (train/val/test) after the data has been downloaded and processed.
+    '''
     train_dataloader = data.train_dataloader()
     val_dataloader = data.val_dataloader()
     return train_dataloader, val_dataloader
